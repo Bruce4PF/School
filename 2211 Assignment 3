@@ -1,0 +1,68 @@
+#include <stdio.h>
+#include<stdbool.h>
+
+bool find(int array[32], int elem);
+
+// initialize the structure array
+struct array {
+    int teamCode;
+    char teamName[25];
+    char groupSeeding[2];
+    char teamColour;
+};
+// initialize the team array for 32 spots
+struct array teamArray[32];
+
+int main() {
+    // initialize the functions that will be used
+    bool loop = true;
+    int arrIndex = 0;
+
+    while (loop && (arrIndex < 32)) {
+        char opCode = 'a'; // initiate operation code
+        int inputCode;
+        bool codeExists = false;
+
+        printf("Enter operation code:");
+        scanf("%c", &opCode); // asks user to input character which is saved to opCode
+
+        switch (opCode) {
+
+            case 'q': // Quit program
+                loop = false;
+                break;
+
+            case 'i': // Insert a new team
+                printf("Enter team code:");
+                scanf("%i", &inputCode); // user enters one integer
+
+                if (inputCode < 0 || inputCode > 31) { // if input code is less than 0 or greater than 31, tell user and return to main menu
+                    printf("Team code must be between 0 and 31.");
+                    break;
+                }
+
+                for (int i=0;i<32;i++) { // check if inputted code already exists
+                    if (teamArray[i].teamCode == inputCode) {
+                        printf("Team already exists."); // tells user that it exists
+                        codeExists = true;
+                        break;
+                    }
+                }
+                if (codeExists != true) { teamArray[arrIndex].teamCode = inputCode; } // if code doesn't exist, set team code to the input user gave
+                break;
+
+            case 's': // Search item in database and print it out
+                return 1;
+            case 'u': // Update a team in the database
+                return 2;
+            case 'p': // Print entire list of teams
+                return 3;
+            default:
+                printf("Error, operator is not correct. Please choose from operators 'i', 's', 'u', 'p', or 'q'.\n");
+        }
+
+        if (codeExists != true) {
+            arrIndex++; // augment index for next loop
+        }
+    }
+}
