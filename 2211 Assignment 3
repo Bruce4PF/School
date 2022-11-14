@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include<stdbool.h>
+#include <string.h>
+#include <ctype.h>
 
 bool find(int array[32], int elem);
 
@@ -13,7 +15,11 @@ struct array {
 // initialize the team array for 32 spots
 struct array teamArray[32];
 
+
 int main() {
+    char letters[8] = {'A','B','C','D','E','F','G','H'};
+    char numbers[4] = {'1','2','3','4'};
+
     // initialize the functions that will be used
     bool loop = true;
     int arrIndex = 0;
@@ -22,9 +28,11 @@ int main() {
         char opCode = 'a'; // initiate operation code
         int inputCode;
         bool codeExists = false;
+        bool nameExists = false;
+        bool gseedExists = false;
 
         printf("Enter operation code:");
-        scanf("%c", &opCode); // asks user to input character which is saved to opCode
+        scanf(" %c", &opCode); // asks user to input character which is saved to opCode
 
         switch (opCode) {
 
@@ -37,18 +45,89 @@ int main() {
                 scanf("%i", &inputCode); // user enters one integer
 
                 if (inputCode < 0 || inputCode > 31) { // if input code is less than 0 or greater than 31, tell user and return to main menu
-                    printf("Team code must be between 0 and 31.");
+                    printf("Team code must be between 0 and 31.\n");
                     break;
                 }
 
                 for (int i=0;i<32;i++) { // check if inputted code already exists
                     if (teamArray[i].teamCode == inputCode) {
-                        printf("Team already exists."); // tells user that it exists
+                        printf("Team already exists.\n"); // tells user that it exists
                         codeExists = true;
                         break;
                     }
                 }
-                if (codeExists != true) { teamArray[arrIndex].teamCode = inputCode; } // if code doesn't exist, set team code to the input user gave
+                if (codeExists) { break; }
+
+                // Prompt the user for the name of the team
+                char inputName[25];
+                char formattedName[25];
+
+                printf("Enter team name:");
+                scanf(" %[^\n]s", inputName); // prompts user for a string
+                strncpy(formattedName, inputName, 25); // reduces string length to 25, if over 25
+
+                for (int i=0;i<32;i++) { // check if inputted name already exists
+                    if (strcmp(teamArray[i].teamName, formattedName) == 0) {
+                        printf("Team name already exists.\n"); // tells user that name already exists
+                        nameExists = true;
+                        break;
+                    }
+                }
+                printf("%s", formattedName);
+
+                if (nameExists == true) { break; }
+
+                // Prompt the user for the group seeding of the team
+
+                bool validGroup = false;
+                bool validSeeding = false;
+                char inputSeeding[2];
+
+                printf("Enter group seeding:");
+                scanf("%s", inputSeeding); // prompts user for input for group seeding
+
+                for (int i=0; i<8; i++) { // checks if the letter in inputted group seeding is between A-H
+                    if (inputSeeding[0] == letters[i]) {
+                        validGroup = true;
+                        break;
+                    }
+                }
+                for (int i=0; i<4; i++) { // checks if the number in inputted group seeding is between 1-4
+                    if (inputSeeding[1] == numbers[i]) {
+                        validSeeding = true;
+                        break;
+                    }
+                }
+                if (validGroup == false || validSeeding == false) { // if both letter and number fall in list, then add them to the teamArray groupseeding database
+                    printf("Invalid group seeding. Only groups A-H and seeds 1-4 are acceptable.\n");
+                    break;
+                }
+                else {
+                    for (int i=0;i<32;i++) { // checks if inputted group seeding exists in database
+                        if (teamArray[i].groupSeeding[0] == inputSeeding[0] && teamArray[i].groupSeeding[1] == inputSeeding[1]) {
+                            printf("Group seeding already exists. Group seedings must be unique.\n");
+                            gseedExists = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (gseedExists) { break; }
+
+
+                printf("%c", teamArray[arrIndex].groupSeeding[0]);
+                printf("%c\n", teamArray[arrIndex].groupSeeding[1]);
+
+                teamArray[arrIndex].teamCode = inputCode; // if code doesn't exist, set team code to the input user gave
+
+
+
+                strcpy(teamArray[arrIndex].teamName, formattedName); // set team name to the input user gave
+                strcpy(teamArray[arrIndex].groupSeeding, inputSeeding); // set team group seeding to the input user gave
+                arrIndex++; // augment index for next loop
+
+
+
                 break;
 
             case 's': // Search item in database and print it out
@@ -60,9 +139,8 @@ int main() {
             default:
                 printf("Error, operator is not correct. Please choose from operators 'i', 's', 'u', 'p', or 'q'.\n");
         }
+        printf("%s", teamArray[0].teamName);
+        printf("%s", teamArray[0].groupSeeding);
 
-        if (codeExists != true) {
-            arrIndex++; // augment index for next loop
-        }
     }
 }
