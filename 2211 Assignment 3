@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include<stdbool.h>
 #include <string.h>
-#include <ctype.h>
 
-bool find(int array[32], int elem);
+const char* getColour(char colourChar);
 
 // initialize the structure array
 struct array {
@@ -15,10 +14,10 @@ struct array {
 // initialize the team array for 32 spots
 struct array teamArray[32];
 
-
 int main() {
     char letters[8] = {'A','B','C','D','E','F','G','H'};
     char numbers[4] = {'1','2','3','4'};
+    char formattedName[25];
 
     // initialize the functions that will be used
     bool loop = true;
@@ -30,6 +29,8 @@ int main() {
         bool codeExists = false;
         bool nameExists = false;
         bool gseedExists = false;
+        int searchCode;
+        int updateCode;
 
         printf("Enter operation code:");
         scanf(" %c", &opCode); // asks user to input character which is saved to opCode
@@ -60,7 +61,6 @@ int main() {
 
                 // Prompt the user for the name of the team
                 char inputName[25];
-                char formattedName[25];
 
                 printf("Enter team name:");
                 scanf(" %[^\n]s", inputName); // prompts user for a string
@@ -73,7 +73,6 @@ int main() {
                         break;
                     }
                 }
-                printf("%s", formattedName);
 
                 if (nameExists == true) { break; }
 
@@ -114,33 +113,171 @@ int main() {
 
                 if (gseedExists) { break; }
 
+                // Prompt user for uniform colour
+                char inputColour;
+                char colours[7] = {'R', 'O', 'Y', 'G', 'B', 'I', 'V'};
+                bool validColour = false;
+                printf("Enter the kit colour:");
+                scanf(" %c", &inputColour); // asks for input for the colour of kits
 
-                printf("%c", teamArray[arrIndex].groupSeeding[0]);
-                printf("%c\n", teamArray[arrIndex].groupSeeding[1]);
+                for (int i=0;i<7;i++) { // checks if inputted colour is in the allowed colours
+                    if (inputColour == colours[i]) {
+                        validColour = true;
+                        break;
+                    }
+                }
+
+                if (!validColour) { // if user did not give acceptable colour, return to main menu
+                    printf("Invalid Colour. Only 'R', 'O', 'Y', 'G', 'B', 'I', and 'V' are accepted inputs.\n");
+                    break;
+                }
 
                 teamArray[arrIndex].teamCode = inputCode; // if code doesn't exist, set team code to the input user gave
-
-
-
                 strcpy(teamArray[arrIndex].teamName, formattedName); // set team name to the input user gave
                 strcpy(teamArray[arrIndex].groupSeeding, inputSeeding); // set team group seeding to the input user gave
+                teamArray[arrIndex].teamColour = inputColour; // set team kit colour to the input user gave
                 arrIndex++; // augment index for next loop
-
-
-
                 break;
 
             case 's': // Search item in database and print it out
-                return 1;
+
+                printf("Enter team code:");
+                scanf(" %i", &searchCode);
+                bool codeFound = false;
+
+                for (int i=0;i<32;i++) { // checks to see if input code exists within team database
+                    if (teamArray[i].teamCode == searchCode) { // if code matches, then print all the values associated
+
+                        const char* colour = getColour(teamArray[i].teamColour);// turn colour char into word
+
+                        printf("\n%-30s %i\n", "Team Code:", teamArray[i].teamCode); // print out team information
+                        printf("%-30s %s\n", "Team Name:", teamArray[i].teamName);
+                        printf("%-30s %c%c\n", "Group Seeding:", teamArray[i].groupSeeding[0], teamArray[i].groupSeeding[1]);
+                        printf("%-30s %s\n", "Primary Kit Colour:", colour);
+                        codeFound = true;
+                        break;
+                    }
+                }
+
+                if (!codeFound) { // if code not found, then tell user and return to main menu
+                    printf("Team not found.\n");
+                }
+                break;
+
             case 'u': // Update a team in the database
-                return 2;
+                printf("\tEnter team code:");
+                scanf("%i", &updateCode);
+                bool updateCodeFound = false;
+
+                for (int j=0;j<32;j++) { // checks through team array for team code
+                    if(updateCode == teamArray[j].teamCode) {
+                        updateCodeFound = true;
+                        // Update team name
+                        char updateName[25];
+
+                        printf("\tEnter team name:");
+                        scanf(" %[^\n]s", updateName); // prompts user for a string
+                        strncpy(formattedName, updateName, 25); // reduces string length to 25, if over 25
+
+                        for (int i=0;i<32;i++) { // check if inputted name already exists
+                            if (strcmp(teamArray[j].teamName, formattedName) == 0) { break; }
+                            if (strcmp(teamArray[i].teamName, formattedName) == 0) {
+                                printf("\tTeam name already exists.\n"); // tells user that name already exists
+                                nameExists = true;
+                                break;
+                            }
+                        }
+                        if (nameExists == true) { break; }
+
+                        // Prompt the user for the group seeding of the team
+                        bool validUpdateGroup = false;
+                        bool validUpdateSeeding = false;
+                        char updateInputSeeding[2];
+
+                        printf("\tEnter group seeding:");
+                        scanf("%s", updateInputSeeding); // prompts user for input for group seeding
+
+
+                        for (int i=0; i<8; i++) { // checks if the letter in inputted group seeding is between A-H
+                            if (updateInputSeeding[0] == letters[i]) {
+                                validUpdateGroup = true;
+                                break;
+                            }
+                        }
+                        for (int i=0; i<4; i++) { // checks if the number in inputted group seeding is between 1-4
+                            if (updateInputSeeding[1] == numbers[i]) {
+                                validUpdateSeeding = true;
+                                break;
+                            }
+                        }
+                        if (validUpdateGroup == false || validUpdateSeeding == false) { // if both letter and number fall in list, then add them to the teamArray groupseeding database
+                            printf("\tInvalid group seeding. Only groups A-H and seeds 1-4 are acceptable.\n");
+                            break;
+                        }
+                        else {
+                            for (int i=0;i<32;i++) { // checks if inputted group seeding exists in database. If the same as current, then skip all
+                                if (teamArray[j].groupSeeding[0] == updateInputSeeding[0] && teamArray[j].groupSeeding[1] == updateInputSeeding[1]) { break; }
+                                if (teamArray[i].groupSeeding[0] == updateInputSeeding[0] && teamArray[i].groupSeeding[1] == updateInputSeeding[1]) {
+                                    printf("\tGroup seeding already exists. Group seedings must be unique.\n");
+                                    gseedExists = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (gseedExists) { break; } // if group seeding already exists, then return to main menu
+
+                        // Prompt user for uniform colour
+                        char validInputColour;
+                        char validColours[7] = {'R', 'O', 'Y', 'G', 'B', 'I', 'V'};
+                        bool availColour = false;
+
+                        printf("\tEnter the kit colour:");
+                        scanf(" %c", &validInputColour); // asks for input for the colour of kits
+
+                        for (int i=0;i<7;i++) { // checks if inputted colour is in the allowed colours
+                            if (validInputColour == validColours[i]) {
+                                availColour = true;
+                                break;
+                            }
+                        }
+
+                        if (!availColour) { // if user did not give acceptable colour, return to main menu
+                            printf("\tInvalid Colour. Only 'R', 'O', 'Y', 'G', 'B', 'I', and 'V' are accepted inputs.\n");
+                            break;
+                        }
+
+                        strcpy(teamArray[j].teamName, formattedName); // set team name to the input user gave
+                        teamArray[j].groupSeeding[0] = updateInputSeeding[0]; // set team group seeding to the input user gave
+                        teamArray[j].groupSeeding[1] = updateInputSeeding[1];
+                        teamArray[j].teamColour = validInputColour; // set team kit colour to the input user gave
+                    }
+                }
+
+                if (!updateCodeFound) {
+                    printf("\tTeam does not exist.\n");
+                }
+                break;
+
             case 'p': // Print entire list of teams
-                return 3;
+                printf("\n%-15s %-25s %-25s %-20s\n", "Team Code", "Team Name", "Group Seeding", "Primary Kit Colour"); // prints the information
+
+                for (int i=0;i<arrIndex;i++) { // prints each teame info out
+                    printf("%-15d %-25s %c%-24c %-20s\n", teamArray[i].teamCode, teamArray[i].teamName, teamArray[i].groupSeeding[0], teamArray[i].groupSeeding[1], getColour(teamArray[i].teamColour));
+                }
+                break;
             default:
                 printf("Error, operator is not correct. Please choose from operators 'i', 's', 'u', 'p', or 'q'.\n");
+                break;
         }
-        printf("%s", teamArray[0].teamName);
-        printf("%s", teamArray[0].groupSeeding);
-
     }
+}
+
+const char* getColour(char colourChar) { // helper function that retrieves full name form of the char colour
+    const char *colours[7] = {"Red", "Orange", "Yellow", "Green", "Blue", "Indigo", "Violet"};
+    for (int i=0;i<7;i++) { // iterates through colours list and if matches then return that full name colour
+        if (colourChar == colours[i][0]) {
+            return colours[i];
+        }
+    }
+    return NULL;
 }
